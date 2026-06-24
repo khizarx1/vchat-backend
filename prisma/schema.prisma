@@ -1,0 +1,97 @@
+// Prisma schema — source of truth for the database.
+// Edit a model, then `npm run prisma:migrate` to apply it and regenerate the client.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// An account in the app.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  about        String   @default("Hey there! I am using vchat.")
+  phone        String?
+  avatarUrl    String?
+  lastSeenAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contacts     Contact[]     @relation("ContactOwner")
+  contactOf    Contact[]     @relation("ContactTarget")
+  participants Participant[]
+  messages     Message[]
+
+  @@map("users")
+}
+
+// Directional address-book entry: `owner` added `contact`.
+model Contact {
+  id        String   @id @default(cuid())
+  ownerId   String
+  contactId String
+  alias     String?
+  createdAt DateTime @default(now())
+
+  owner   User @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  contact User @relation("ContactTarget", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, contactId])
+  @@map("contacts")
+}
+
+// A chat thread. 1:1 today (two participants); ready for groups later.
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants Participant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+// A user's membership in a conversation, with their read pointer for unread counts.
+model Participant {
+  id             String    @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  joinedAt       DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("participants")
+}
+
+// A single message in a conversation.
+model Message {
+  id             String         @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String
+  deliveryStatus DeliveryStatus @default(SENT)
+  createdAt      DateTime       @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+enum DeliveryStatus {
+  SENT
+  DELIVERED
+  READ
+}

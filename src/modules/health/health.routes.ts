@@ -1,0 +1,7 @@
+// Health routes — mounted at /health.
+import { Router } from 'express';
+import { healthController } from './health.controller';
+
+export const healthRoutes = Router();
+
+healthRoutes.get('/', healthController.check);
