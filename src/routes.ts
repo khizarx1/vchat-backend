@@ -3,10 +3,12 @@
  * Adding a module is a two-line change here, keeping app.ts clean.
  */
 import { Router } from 'express';
+import { authRoutes } from './modules/auth/auth.routes';
 import { healthRoutes } from './modules/health/health.routes';
 import { usersRoutes } from './modules/users/users.routes';
 
 export const apiRouter = Router();
 
 apiRouter.use('/health', healthRoutes);
+apiRouter.use('/auth', authRoutes);
 apiRouter.use('/users', usersRoutes);

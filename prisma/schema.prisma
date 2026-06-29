@@ -23,12 +23,28 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  contacts     Contact[]     @relation("ContactOwner")
-  contactOf    Contact[]     @relation("ContactTarget")
-  participants Participant[]
-  messages     Message[]
+  contacts      Contact[]      @relation("ContactOwner")
+  contactOf     Contact[]      @relation("ContactTarget")
+  participants  Participant[]
+  messages      Message[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
+}
+
+// A long-lived refresh token (hashed). Rotated on use, revocable on logout.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 // Directional address-book entry: `owner` added `contact`.

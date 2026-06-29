@@ -7,7 +7,7 @@ const publicUserSelect = {
   name: true,
   about: true,
   phone: true,
-  avatarUri: true,
+  avatarUrl: true,
   lastSeenAt: true,
   createdAt: true,
 } as const;
@@ -24,6 +24,27 @@ export const usersRepository = {
     return prisma.user.findUnique({
       where: { id },
       select: publicUserSelect,
+    });
+  },
+
+  create(data: { name: string; email: string; passwordHash: string }) {
+    return prisma.user.create({
+      data,
+      select: publicUserSelect,
+    });
+  },
+
+  findByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+  },
+
+  findByEmailWithHash(email: string) {
+    return prisma.user.findUnique({
+      where: { email },
+      select: { id: true, passwordHash: true },
     });
   },
 };

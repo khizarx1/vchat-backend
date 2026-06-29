@@ -13,6 +13,9 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   PORT: z.coerce.number().int().positive().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  JWT_SECRET: z.string().min(16),
+  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
 });
 
 const parsed = schema.safeParse(process.env);
